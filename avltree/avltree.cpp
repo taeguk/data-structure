@@ -6,31 +6,32 @@
 
 using namespace std;
 
-template <typename T>
+template <typename K, typename V>
 class AVLNode {
 public:
-	T data;
+	K key;
+	V value;
 	AVLNode *left, *right;
 	int height;
 
 	AVLNode()
 		:left(NULL), right(NULL), height(1)
 	{}
-	AVLNode(const T &data)
-		:data(data), left(NULL), right(NULL), height(1)
+	AVLNode(const K &key, const V &value)
+		:key(key), value(value), left(NULL), right(NULL), height(1)
 	{}
 };
 
-template <typename T>
+template <typename K, typename V>
 class AVLTree {
 private:
-	AVLNode<T> *vRoot;
-	AVLNode<T> *root;
+	AVLNode<K,V> *vRoot;
+	AVLNode<K,V> *root;
 	int nodeCnt;
 	
 public:
 	AVLTree() {
-		this->vRoot = new AVLNode<T>();
+		this->vRoot = new AVLNode<K,V>();
 		this->root = NULL;
 		this->nodeCnt = 0;
 	}
@@ -42,14 +43,14 @@ public:
 	/* General Methods of AVL Tree. */
 
 public:
-	AVLNode<T>* insert(const T &data) {
-		stack<AVLNode<T>*> route;
-		AVLNode<T> *pNew = new AVLNode<T>(data);
+	const AVLNode<K,V>* insert(const K &key, const V &value) {
+		stack<AVLNode<K,V>*> route;
+		auto pNew = new AVLNode<K,V>(key, value);
 
 		if(root == NULL) {
 			vRoot->right = root = pNew;
 		} else {
-			AVLNode<T> *parent = vRoot, *cur = root;
+			auto parent = vRoot, cur = root;
 
 			route.push(vRoot);
 
@@ -58,9 +59,9 @@ public:
 				
 				parent = cur;
 
-				if(data < cur->data)
+				if(key < cur->key)
 					cur = cur->left;
-				else if(data > cur->data)
+				else if(key > cur->key)
 					cur = cur->right;
 				else {
 					delete pNew;
@@ -68,7 +69,7 @@ public:
 				}
 			}
 
-			if(data < parent->data)
+			if(key < parent->key)
 				parent->left = pNew;
 			else
 				parent->right = pNew;
@@ -80,18 +81,18 @@ public:
 		return pNew;
 	}
 
-	bool remove(const T &data) {
-		stack<AVLNode<T>*> route1, route2;
-		AVLNode<T> *parent = vRoot, *cur = root;
+	bool remove(const K &key) {
+		stack<AVLNode<K,V>*> route1, route2;
+		auto parent = vRoot, cur = root;
 
 		route1.push(vRoot);
 
 		while(cur) {
-			AVLNode<T> *tmp = cur;
+			auto tmp = cur;
 
-			if(data < cur->data)
+			if(key < cur->key)
 				cur = cur->left;
-			else if(data > cur->data)
+			else if(key > cur->key)
 				cur = cur->right;
 			else
 				break;
@@ -105,12 +106,13 @@ public:
 			return false;
 		} else {
 			bool r2Flag = false;
-			AVLNode<T> *pDel = cur, *pRep;
+			auto *pDel = cur;
+			decltype(pDel) pRep;
 
 			if(!pDel->right) {
 				pRep = pDel->left;
 			} else {
-				AVLNode<T> *p = pDel, *c = pDel->right;
+				auto *p = pDel, *c = pDel->right;
 
 				route2.push(pDel);
 
@@ -154,12 +156,12 @@ public:
 		}
 	}
 
-	AVLNode<T>* search(const T &data) {
-		AVLNode<T> *cur = root;
+	const AVLNode<K,V>* search(const K &key) {
+		auto cur = root;
 		while(cur) {
-			if(data < cur->data)
+			if(key < cur->key)
 				cur = cur->left;
-			else if(data > cur->data)
+			else if(key > cur->key)
 				cur = cur->right;
 			else
 				break;
@@ -176,7 +178,7 @@ public:
 	}
 
 private:
-	inline int getHeight(AVLNode<T> *node) {
+	inline int getHeight(AVLNode<K,V> *node) {
 		return (node ? node->height : 0);
 	}
 
@@ -184,11 +186,11 @@ private:
 	/* Methods that balance AVL Tree. */
 
 private:
-	void balance(stack<AVLNode<T>*> &route) {
+	void balance(stack<AVLNode<K,V>*> &route) {
 		if(route.empty())
 			return;
 
-		AVLNode<T> *parent, *cur = route.top(); route.pop();
+		AVLNode<K,V> *parent, *cur = route.top(); route.pop();
 
 		while(!route.empty()) {
 			updateHeight(cur);
@@ -206,7 +208,7 @@ private:
 		}
 	}
 
-	AVLNode<T>* balance(AVLNode<T> *node) {
+	AVLNode<K,V>* balance(AVLNode<K,V> *node) {
 		int bf = balanceFactor(node);
 		if(bf > 1) {
 			if(balanceFactor(node->left) > 0) {
@@ -224,18 +226,18 @@ private:
 		return node;
 	}
 
-	void updateHeight(AVLNode<T> *node) {
+	void updateHeight(AVLNode<K,V> *node) {
 		int h1 = getHeight(node->left);
 		int h2 = getHeight(node->right);
 		node->height = (h1 > h2 ? h1 : h2) + 1;
 	}
 
-	inline int balanceFactor(AVLNode<T> *node) {
+	inline int balanceFactor(AVLNode<K,V> *node) {
 		return getHeight(node->left) - getHeight(node->right);
 	}
 
-	AVLNode<T>* rotateLL(AVLNode<T> *node) {
-		AVLNode<T> *child = node->left;
+	AVLNode<K,V>* rotateLL(AVLNode<K,V> *node) {
+		auto *child = node->left;
 		node->left = child->right;
 		child->right = node;
 
@@ -244,8 +246,8 @@ private:
 
 		return child;
 	}
-	AVLNode<T>* rotateRR(AVLNode<T> *node) {
-		AVLNode<T> *child = node->right;
+	AVLNode<K,V>* rotateRR(AVLNode<K,V> *node) {
+		auto *child = node->right;
 		node->right = child->left;
 		child->left = node;
 
@@ -254,11 +256,11 @@ private:
 		
 		return child;
 	}
-	AVLNode<T>* rotateLR(AVLNode<T> *node) {
+	AVLNode<K,V>* rotateLR(AVLNode<K,V> *node) {
 		node->left = rotateRR(node->left);
 		return rotateLL(node);
 	}
-	AVLNode<T>* rotateRL(AVLNode<T> *node) {
+	AVLNode<K,V>* rotateRL(AVLNode<K,V> *node) {
 		node->right = rotateLL(node->right);
 		return rotateRR(node);
 	}
@@ -274,22 +276,22 @@ public:
 	}
 
 private:
-	void visualizeTree(AVLNode<T> *root, bool *flag, int level) {
+	void visualizeTree(AVLNode<K,V> *root, bool *flag, int level) {
 		for(int i=0; i<level-1; ++i) {
 			if(flag[i])	cout << "│  ";
 			else		cout << "   ";
 		}
 		if(level > 0) {
 			if(root) {
-				if(flag[level-1]) cout << "├──" << root->data << endl;
-				else			  cout << "└──" << root->data << endl;
+				if(flag[level-1]) cout << "├──" << root->key << endl;
+				else			  cout << "└──" << root->key << endl;
 			} else {
 				if(flag[level-1]) cout << "├──" << "nil" << endl;
 				else			  cout << "└──" << "nil" << endl;
 				return;
 			}
 		} else {
-			if(root) cout << root->data << endl;
+			if(root) cout << root->key << endl;
 			else return;
 		}
 		flag[level] = true;
@@ -315,7 +317,7 @@ int main(void)
 	int N;
 	int mode, detail;
 	int *data;
-	AVLTree<int> tree;
+	AVLTree<int,int> tree;
 	time_t start_time, end_time;
 
 	ios::sync_with_stdio(false);
@@ -354,7 +356,7 @@ int main(void)
 	cout << "Insert Test ------------" << endl;
 	start_time = clock();
 	for(int i=0; i<N; ++i)
-		tree.insert(data[i]);
+		tree.insert(data[i], data[i]);
 	end_time = clock();
 	if(detail) tree.visualizeTree();
 	cout << "[I] Count of node : " << tree.count() << endl;
